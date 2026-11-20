@@ -1,0 +1,27 @@
+{
+  "query": {
+    "metric": "heat",
+    "zones": [
+      "river",
+      "hill"
+    ],
+    "start": "2026-07-01",
+    "end": "2026-07-04",
+    "minimum_coverage": "0.8"
+  },
+  "budget_cents": 10000,
+  "proposals": [
+    {
+      "action": "shade-river",
+      "cost_cents": 4000
+    },
+    {
+      "action": "hub-river",
+      "cost_cents": 10000
+    },
+    {
+      "action": "shared-river",
+      "cost_cents": 9000
+    }
+  ]
+}

@@ -1,0 +1,404 @@
+{
+  "id": "synthetic-initial",
+  "source": "本地合成城市资料",
+  "records": [
+    {
+      "kind": "zone",
+      "data": {
+        "id": "river",
+        "revision": 1,
+        "name": "河畔区"
+      }
+    },
+    {
+      "kind": "zone",
+      "data": {
+        "id": "hill",
+        "revision": 1,
+        "name": "山麓区"
+      }
+    },
+    {
+      "kind": "metric",
+      "data": {
+        "id": "heat",
+        "revision": 1,
+        "name": "日最高气温",
+        "dimension": "temperature",
+        "unit": "C",
+        "threshold": "30",
+        "direction": "high",
+        "minimum": "-50",
+        "maximum": "60"
+      }
+    },
+    {
+      "kind": "metric",
+      "data": {
+        "id": "water",
+        "revision": 1,
+        "name": "人均可用水量",
+        "dimension": "water",
+        "unit": "L",
+        "threshold": "80",
+        "direction": "low",
+        "minimum": "0",
+        "maximum": "1000"
+      }
+    },
+    {
+      "kind": "station",
+      "data": {
+        "id": "river-s",
+        "revision": 1,
+        "zone": "river",
+        "start": "2026-01-01",
+        "end": "2026-12-31",
+        "weight": "1",
+        "metrics": [
+          "heat",
+          "water"
+        ]
+      }
+    },
+    {
+      "kind": "population",
+      "data": {
+        "id": "river-adult",
+        "revision": 1,
+        "zone": "river",
+        "group": "adult",
+        "start": "2026-01-01",
+        "end": "2026-12-31",
+        "count": 80,
+        "vulnerability": "1"
+      }
+    },
+    {
+      "kind": "population",
+      "data": {
+        "id": "river-senior",
+        "revision": 1,
+        "zone": "river",
+        "group": "senior",
+        "start": "2026-01-01",
+        "end": "2026-12-31",
+        "count": 20,
+        "vulnerability": "2"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "river-s",
+        "metric": "heat",
+        "day": "2026-07-01",
+        "revision": 1,
+        "value": "32",
+        "unit": "C",
+        "quality": "valid"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "river-s",
+        "metric": "water",
+        "day": "2026-07-01",
+        "revision": 1,
+        "value": "0.1",
+        "unit": "m3",
+        "quality": "valid"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "river-s",
+        "metric": "heat",
+        "day": "2026-07-02",
+        "revision": 1,
+        "value": "32",
+        "unit": "C",
+        "quality": "valid"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "river-s",
+        "metric": "water",
+        "day": "2026-07-02",
+        "revision": 1,
+        "value": "0.1",
+        "unit": "m3",
+        "quality": "valid"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "river-s",
+        "metric": "heat",
+        "day": "2026-07-03",
+        "revision": 1,
+        "value": "35",
+        "unit": "C",
+        "quality": "valid"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "river-s",
+        "metric": "water",
+        "day": "2026-07-03",
+        "revision": 1,
+        "value": "0.1",
+        "unit": "m3",
+        "quality": "valid"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "river-s",
+        "metric": "heat",
+        "day": "2026-07-04",
+        "revision": 1,
+        "value": "35",
+        "unit": "C",
+        "quality": "valid"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "river-s",
+        "metric": "water",
+        "day": "2026-07-04",
+        "revision": 1,
+        "value": "0.1",
+        "unit": "m3",
+        "quality": "valid"
+      }
+    },
+    {
+      "kind": "station",
+      "data": {
+        "id": "hill-s",
+        "revision": 1,
+        "zone": "hill",
+        "start": "2026-01-01",
+        "end": "2026-12-31",
+        "weight": "1",
+        "metrics": [
+          "heat",
+          "water"
+        ]
+      }
+    },
+    {
+      "kind": "population",
+      "data": {
+        "id": "hill-adult",
+        "revision": 1,
+        "zone": "hill",
+        "group": "adult",
+        "start": "2026-01-01",
+        "end": "2026-12-31",
+        "count": 80,
+        "vulnerability": "1"
+      }
+    },
+    {
+      "kind": "population",
+      "data": {
+        "id": "hill-senior",
+        "revision": 1,
+        "zone": "hill",
+        "group": "senior",
+        "start": "2026-01-01",
+        "end": "2026-12-31",
+        "count": 20,
+        "vulnerability": "2"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "hill-s",
+        "metric": "heat",
+        "day": "2026-07-01",
+        "revision": 1,
+        "value": "32",
+        "unit": "C",
+        "quality": "valid"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "hill-s",
+        "metric": "water",
+        "day": "2026-07-01",
+        "revision": 1,
+        "value": "0.1",
+        "unit": "m3",
+        "quality": "valid"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "hill-s",
+        "metric": "heat",
+        "day": "2026-07-02",
+        "revision": 1,
+        "value": "32",
+        "unit": "C",
+        "quality": "valid"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "hill-s",
+        "metric": "water",
+        "day": "2026-07-02",
+        "revision": 1,
+        "value": "0.1",
+        "unit": "m3",
+        "quality": "valid"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "hill-s",
+        "metric": "heat",
+        "day": "2026-07-03",
+        "revision": 1,
+        "value": "35",
+        "unit": "C",
+        "quality": "valid"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "hill-s",
+        "metric": "water",
+        "day": "2026-07-03",
+        "revision": 1,
+        "value": "0.1",
+        "unit": "m3",
+        "quality": "valid"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "hill-s",
+        "metric": "heat",
+        "day": "2026-07-04",
+        "revision": 1,
+        "value": "35",
+        "unit": "C",
+        "quality": "valid"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "hill-s",
+        "metric": "water",
+        "day": "2026-07-04",
+        "revision": 1,
+        "value": "0.1",
+        "unit": "m3",
+        "quality": "valid"
+      }
+    },
+    {
+      "kind": "action",
+      "data": {
+        "id": "cool-river",
+        "revision": 1,
+        "name": "河畔避暑空间",
+        "zone": "river",
+        "metric": "heat",
+        "start": "2026-07-03",
+        "end": "2026-07-04",
+        "status": "active",
+        "capacity": 30,
+        "groups": [
+          "senior",
+          "adult"
+        ],
+        "priority": 10,
+        "facility": "river-library"
+      }
+    },
+    {
+      "kind": "action",
+      "data": {
+        "id": "shade-river",
+        "revision": 1,
+        "name": "合成降温行动-shade-river",
+        "zone": "river",
+        "metric": "heat",
+        "start": "2026-07-03",
+        "end": "2026-07-04",
+        "status": "planned",
+        "capacity": 30,
+        "groups": [
+          "senior",
+          "adult"
+        ],
+        "priority": 5,
+        "facility": "river-park"
+      }
+    },
+    {
+      "kind": "action",
+      "data": {
+        "id": "hub-river",
+        "revision": 1,
+        "name": "合成降温行动-hub-river",
+        "zone": "river",
+        "metric": "heat",
+        "start": "2026-07-03",
+        "end": "2026-07-04",
+        "status": "planned",
+        "capacity": 80,
+        "groups": [
+          "senior",
+          "adult"
+        ],
+        "priority": 5,
+        "facility": "river-hub"
+      }
+    },
+    {
+      "kind": "action",
+      "data": {
+        "id": "shared-river",
+        "revision": 1,
+        "name": "合成降温行动-shared-river",
+        "zone": "river",
+        "metric": "heat",
+        "start": "2026-07-03",
+        "end": "2026-07-04",
+        "status": "planned",
+        "capacity": 90,
+        "groups": [
+          "senior",
+          "adult"
+        ],
+        "priority": 5,
+        "facility": "river-park"
+      }
+    }
+  ]
+}
