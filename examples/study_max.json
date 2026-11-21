@@ -1,0 +1,23 @@
+{
+  "metric": "heat",
+  "treated": [
+    "river"
+  ],
+  "controls": [
+    "hill"
+  ],
+  "before": [
+    "2026-07-01",
+    "2026-07-02"
+  ],
+  "after": [
+    "2026-07-03",
+    "2026-07-04"
+  ],
+  "tolerance": "1",
+  "minimum_pairs": 2,
+  "calibration": "heat-max-v1",
+  "conversions": [
+    "conv-legacy-max"
+  ]
+}

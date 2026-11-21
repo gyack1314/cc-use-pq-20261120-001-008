@@ -127,12 +127,14 @@ def row_key(kind, record):
     return record["id"]
 
 
-KINDS = ("zone", "metric", "station", "population", "action", "reading")
+KINDS = ("zone", "metric", "calibration", "conversion", "station", "population", "action", "reading")
 
 
 def query_spec(value):
-    shape(value, ("metric", "start", "end", "zones"), ("minimum_coverage",))
+    shape(value, ("metric", "start", "end", "zones"), ("minimum_coverage", "calibration", "conversions"))
     start, end = period(value["start"], value["end"])
     return {"metric": identifier(value["metric"], "metric"), "start": start, "end": end,
             "zones": distinct_strings(value["zones"], "zones"),
-            "minimum_coverage": str(number(value.get("minimum_coverage", "0.8"), "minimum_coverage", 0, 1))}
+            "minimum_coverage": str(number(value.get("minimum_coverage", "0.8"), "minimum_coverage", 0, 1)),
+            "calibration": identifier(value["calibration"], "calibration") if value.get("calibration") else None,
+            "conversions": distinct_strings(value.get("conversions", []), "conversions", nonempty=False)}

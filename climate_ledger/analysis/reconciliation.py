@@ -52,7 +52,8 @@ class Reconciliation:
         for field in ("usable", "hazardous", "protected", "exposed", "weighted_burden", "reason"):
             if old[field] != new[field]:
                 result[field] = {"before": old[field], "after": new[field]}
-        for field in ("value", "coverage", "metric_revision"):
+        for field in ("value", "coverage", "metric_revision", "calibration", "calibration_revision",
+                      "calibration_legacy", "window"):
             if old["weather"][field] != new["weather"][field]:
                 result["weather." + field] = {"before": old["weather"][field], "after": new["weather"][field]}
         if old["population"] != new["population"]:
@@ -76,7 +77,10 @@ class Reconciliation:
 
     @staticmethod
     def evidence(row):
-        return {"readings": row["weather"]["evidence"], "metric_revision": row["weather"]["metric_revision"],
+        return {"readings": row["weather"]["evidence"],
+                "calibration": row["weather"]["calibration"],
+                "calibration_revision": row["weather"]["calibration_revision"],
+                "metric_revision": row["weather"]["metric_revision"],
                 "population": [{"id": group["population"], "revision": group["revision"]}
                                for group in row["population"]["groups"]],
                 "actions": [{"id": action["action"], "revision": action["revision"]} for action in row["actions"]]}

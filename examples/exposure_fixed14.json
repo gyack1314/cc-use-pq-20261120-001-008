@@ -1,0 +1,10 @@
+{
+  "metric": "heat",
+  "zones": [
+    "river"
+  ],
+  "start": "2026-08-01",
+  "end": "2026-08-02",
+  "minimum_coverage": "0.8",
+  "calibration": "heat-fixed14-v1"
+}

@@ -4,6 +4,7 @@ from decimal import Decimal
 from ..adaptation import Adaptation
 from ..contracts import (decimal_text, identifier, integer, number, overlaps,
                          query_spec, require, shape)
+from ..observatory.calibration import Calibrations
 from .exposure import Exposure
 
 
@@ -28,8 +29,11 @@ class Portfolio:
 
     def plan(self, value):
         spec = portfolio_spec(value)
-        baseline = Exposure(self.snapshot).analyze(spec["query"])
+        baseline = Exposure(self.snapshot, spec["query"]["calibration"]).analyze(spec["query"])
         require(baseline["status"] == "qualified", "incomplete", "资料不完整，不能对行动组合排序")
+        calibrations = Calibrations(self.snapshot)
+        target_calibration = calibrations.selected_id(
+            spec["query"]["calibration"], spec["query"]["metric"])
         candidates = []
         excluded = []
         active = [a for a in self.snapshot["action"].values() if a["status"] == "active"]
@@ -40,7 +44,9 @@ class Portfolio:
             require(action["metric"] == spec["query"]["metric"] and action["zone"] in spec["query"]["zones"],
                     "scope", "候选行动超出分析范围")
             reason = None
-            if not overlaps(action, spec["query"]):
+            if calibrations.action_binding(action) != target_calibration:
+                reason = "calibration_scope"
+            elif not overlaps(action, spec["query"]):
                 reason = "outside_period"
             elif any(a["facility"] == action["facility"] and overlaps(a, action) for a in active):
                 reason = "facility_committed"
@@ -68,7 +74,7 @@ class Portfolio:
                 snapshot["action"][action_id]["status"] = "active"
                 names.append(action_id)
             Adaptation(snapshot).validate()
-            analysis = Exposure(snapshot).analyze(spec["query"])
+            analysis = Exposure(snapshot, spec["query"]["calibration"]).analyze(spec["query"])
             combinations += 1
             avoided = baseline_burden - Decimal(analysis["total"]["known_weighted_burden"])
             additional = (analysis["total"]["known_protected_person_days"]
@@ -100,7 +106,7 @@ class Portfolio:
         chosen = deepcopy(self.snapshot)
         for name in best["actions"]:
             chosen["action"][name]["status"] = "active"
-        result = Exposure(chosen).analyze(spec["query"])
+        result = Exposure(chosen, spec["query"]["calibration"]).analyze(spec["query"])
         return {"request": spec, "status": "hypothetical", "selected": best["actions"],
                 "cost_cents": best["cost_cents"], "remaining_cents": spec["budget_cents"] - best["cost_cents"],
                 "avoided_weighted_burden": decimal_text(best["avoided_burden"]),

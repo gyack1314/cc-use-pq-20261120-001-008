@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from ..adaptation import Adaptation
 from ..contracts import days, decimal_text, query_spec, ratio, require
+from ..observatory.calibration import Calibrations
 from ..observatory.readings import Readings
 from ..residents import Residents
 
@@ -9,13 +10,15 @@ from ..residents import Residents
 class Equity:
     def __init__(self, snapshot):
         self.snapshot = snapshot
-        self.readings = Readings(snapshot)
-        self.residents = Residents(snapshot)
-        self.adaptation = Adaptation(snapshot)
+        self.calibrations = Calibrations(snapshot)
 
     def analyze(self, value):
         spec = query_spec(value)
-        definition = self.readings.catalog.metric(spec["metric"])
+        target = self.calibrations.selected_id(spec["calibration"], spec["metric"])
+        definition = self.calibrations.descriptor(target)
+        readings = Readings(self.snapshot, spec["calibration"])
+        residents = Residents(self.snapshot)
+        adaptation = Adaptation(self.snapshot, spec["calibration"])
         require(set(spec["zones"]).issubset(self.snapshot["zone"]), "zone", "公平性分析行政区不存在")
         threshold = Decimal(definition["threshold"])
         maximum_severity = (Decimal(definition["maximum"]) - threshold if definition["direction"] == "high"
@@ -25,12 +28,12 @@ class Equity:
         gaps = []
         for zone in spec["zones"]:
             for when in days(spec["start"], spec["end"]):
-                population = self.residents.day(zone, when)
+                population = residents.day(zone, when)
                 if not population["complete"]:
                     population_unknown.append({"zone": zone, "day": when, "groups": population["missing_groups"]})
                     continue
-                weather = self.readings.zone_day(zone, spec["metric"], when, spec["minimum_coverage"])
-                protection = self.adaptation.allocate(zone, spec["metric"], when, hazardous=True)
+                weather = readings.zone_day(zone, spec["metric"], when, spec["minimum_coverage"])
+                protection = adaptation.allocate(zone, spec["metric"], when, hazardous=True)
                 unknown_upper = Decimal(0)
                 for group in population["groups"]:
                     key = (zone, group["group"])

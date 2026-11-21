@@ -1,0 +1,275 @@
+{
+  "id": "synthetic-calibrations",
+  "source": "本地合成城市资料",
+  "records": [
+    {
+      "kind": "calibration",
+      "data": {
+        "id": "heat-max-v1",
+        "revision": 1,
+        "name": "日最高气温显式口径v1",
+        "metric": "heat",
+        "concept": "daily-maximum-air-temperature",
+        "concept_version": "1",
+        "window": {
+          "kind": "day"
+        },
+        "effective_start": "2026-01-01",
+        "effective_end": "2026-12-31",
+        "dimension": "temperature",
+        "unit": "C",
+        "minimum": "-50",
+        "maximum": "60",
+        "threshold": "35",
+        "direction": "high"
+      }
+    },
+    {
+      "kind": "calibration",
+      "data": {
+        "id": "heat-fixed14-v1",
+        "revision": 1,
+        "name": "14时固定时刻气温口径v1",
+        "metric": "heat",
+        "concept": "fixed-clock-air-temperature",
+        "concept_version": "1",
+        "window": {
+          "kind": "fixed_clock",
+          "anchor": "14:00"
+        },
+        "effective_start": "2026-08-01",
+        "effective_end": "2026-12-31",
+        "dimension": "temperature",
+        "unit": "C",
+        "minimum": "-50",
+        "maximum": "60",
+        "threshold": "33",
+        "direction": "high"
+      }
+    },
+    {
+      "kind": "conversion",
+      "data": {
+        "id": "conv-legacy-max",
+        "revision": 1,
+        "name": "旧版日最高温到显式日最高温的恒等关系",
+        "source": "legacy.heat",
+        "target": "heat-max-v1",
+        "formula": {
+          "kind": "scale",
+          "a": "1"
+        },
+        "minimum": "20",
+        "maximum": "45",
+        "start": "2026-01-01",
+        "end": "2026-10-31",
+        "reversible": true
+      }
+    },
+    {
+      "kind": "conversion",
+      "data": {
+        "id": "conv-14to-max",
+        "revision": 1,
+        "name": "14时气温到日最高温的有证据经验关系",
+        "source": "heat-fixed14-v1",
+        "target": "heat-max-v1",
+        "formula": {
+          "kind": "affine",
+          "a": "1",
+          "b": "2"
+        },
+        "minimum": "20",
+        "maximum": "40",
+        "start": "2026-08-01",
+        "end": "2026-10-31",
+        "reversible": false
+      }
+    },
+    {
+      "kind": "station",
+      "data": {
+        "id": "river-s",
+        "revision": 2,
+        "zone": "river",
+        "start": "2026-01-01",
+        "end": "2026-07-31",
+        "weight": "1",
+        "metrics": [
+          "heat",
+          "water"
+        ]
+      }
+    },
+    {
+      "kind": "station",
+      "data": {
+        "id": "hill-s",
+        "revision": 2,
+        "zone": "hill",
+        "start": "2026-01-01",
+        "end": "2026-07-31",
+        "weight": "1",
+        "metrics": [
+          "heat",
+          "water"
+        ]
+      }
+    },
+    {
+      "kind": "station",
+      "data": {
+        "id": "river-s14",
+        "revision": 1,
+        "zone": "river",
+        "start": "2026-08-01",
+        "end": "2026-12-31",
+        "weight": "1",
+        "metrics": [
+          "heat"
+        ]
+      }
+    },
+    {
+      "kind": "station",
+      "data": {
+        "id": "hill-s14",
+        "revision": 1,
+        "zone": "hill",
+        "start": "2026-08-01",
+        "end": "2026-12-31",
+        "weight": "1",
+        "metrics": [
+          "heat"
+        ]
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "river-s",
+        "metric": "heat",
+        "day": "2026-07-05",
+        "revision": 1,
+        "value": "95",
+        "unit": "F",
+        "quality": "valid",
+        "calibration": "heat-max-v1"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "river-s14",
+        "metric": "heat",
+        "day": "2026-08-01",
+        "revision": 1,
+        "value": "33",
+        "unit": "C",
+        "quality": "valid",
+        "calibration": "heat-fixed14-v1"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "hill-s14",
+        "metric": "heat",
+        "day": "2026-08-01",
+        "revision": 1,
+        "value": "30",
+        "unit": "C",
+        "quality": "valid",
+        "calibration": "heat-fixed14-v1"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "river-s14",
+        "metric": "heat",
+        "day": "2026-08-02",
+        "revision": 1,
+        "value": "45",
+        "unit": "C",
+        "quality": "valid",
+        "calibration": "heat-fixed14-v1"
+      }
+    },
+    {
+      "kind": "reading",
+      "data": {
+        "station": "hill-s14",
+        "metric": "heat",
+        "day": "2026-08-02",
+        "revision": 1,
+        "value": "31",
+        "unit": "C",
+        "quality": "valid",
+        "calibration": "heat-fixed14-v1"
+      }
+    },
+    {
+      "kind": "action",
+      "data": {
+        "id": "cool-river-summer",
+        "revision": 1,
+        "name": "旧口径延续到八月的避暑承诺",
+        "zone": "river",
+        "metric": "heat",
+        "start": "2026-08-01",
+        "end": "2026-08-04",
+        "status": "active",
+        "capacity": 30,
+        "groups": [
+          "senior",
+          "adult"
+        ],
+        "priority": 10,
+        "facility": "river-library-summer"
+      }
+    },
+    {
+      "kind": "action",
+      "data": {
+        "id": "cool-river-14",
+        "revision": 1,
+        "name": "按14时口径重新确认的避暑空间",
+        "zone": "river",
+        "metric": "heat",
+        "start": "2026-08-01",
+        "end": "2026-08-04",
+        "status": "active",
+        "capacity": 25,
+        "groups": [
+          "senior",
+          "adult"
+        ],
+        "priority": 10,
+        "facility": "river-hub-14",
+        "calibration": "heat-fixed14-v1"
+      }
+    },
+    {
+      "kind": "action",
+      "data": {
+        "id": "cool-river-max",
+        "revision": 1,
+        "name": "按显式日最高温口径重新确认的行动",
+        "zone": "river",
+        "metric": "heat",
+        "start": "2026-07-03",
+        "end": "2026-07-04",
+        "status": "active",
+        "capacity": 30,
+        "groups": [
+          "senior",
+          "adult"
+        ],
+        "priority": 10,
+        "facility": "river-library-max",
+        "calibration": "heat-max-v1"
+      }
+    }
+  ]
+}

@@ -10,13 +10,21 @@ from .contracts import DomainError, canonical, identifier, require, row_key
 CSV_FIELDS = {
     "zone": ("id", "revision", "name"),
     "metric": ("id", "revision", "name", "dimension", "unit", "threshold", "direction", "minimum", "maximum"),
+    "calibration": ("id", "revision", "name", "metric", "concept", "concept_version", "window",
+                    "effective_start", "effective_end", "dimension", "unit",
+                    "minimum", "maximum", "threshold", "direction"),
+    "conversion": ("id", "revision", "name", "source", "target", "formula",
+                   "minimum", "maximum", "start", "end", "reversible"),
     "station": ("id", "revision", "zone", "start", "end", "weight", "metrics"),
-    "reading": ("station", "metric", "day", "revision", "value", "unit", "quality"),
+    "reading": ("station", "metric", "day", "revision", "value", "unit", "quality", "calibration"),
     "population": ("id", "revision", "zone", "group", "start", "end", "count", "vulnerability"),
-    "action": ("id", "revision", "name", "zone", "metric", "start", "end", "status", "capacity", "groups", "priority", "facility"),
+    "action": ("id", "revision", "name", "zone", "metric", "start", "end", "status",
+               "capacity", "groups", "priority", "facility", "calibration"),
 }
 INTEGER_FIELDS = {"revision", "count", "capacity", "priority"}
-ARRAY_FIELDS = {"metrics", "groups"}
+JSON_FIELDS = {"metrics", "groups", "window", "formula"}
+BOOLEAN_FIELDS = {"reversible"}
+OPTIONAL_TEXT_FIELDS = {"calibration"}
 
 
 def decode_csv(content, kind):
@@ -39,13 +47,18 @@ def decode_csv(content, kind):
                 if field in INTEGER_FIELDS:
                     require(item.isascii() and item.isdecimal(), "csv", "整数字段格式错误", field=field, line=line)
                     value[field] = int(item)
-                elif field in ARRAY_FIELDS:
+                elif field in JSON_FIELDS:
                     try:
                         value[field] = json.loads(item)
                     except ValueError:
-                        raise DomainError("csv", "数组列需要JSON数组", field=field, line=line) from None
+                        raise DomainError("csv", "JSON列需要JSON值", field=field, line=line) from None
+                elif field in BOOLEAN_FIELDS:
+                    require(item in ("true", "false"), "csv", "布尔列需要true或false", field=field, line=line)
+                    value[field] = item == "true"
                 elif field == "value" and item == "":
                     value[field] = None
+                elif field in OPTIONAL_TEXT_FIELDS and item == "":
+                    continue
                 else:
                     value[field] = item
             try:
@@ -56,7 +69,6 @@ def decode_csv(content, kind):
             require(key not in identities, "duplicate", "同一CSV对象重复", identity=key, line=line)
             identities.add(key)
             records.append({"kind": kind, "data": value})
-        require(bool(records), "csv", "CSV没有资料行")
         return records
     except csv.Error as exc:
         raise DomainError("csv", "CSV转义或引号无效", line=reader.line_num) from exc
@@ -71,9 +83,14 @@ def encode_csv(records, kind):
         value = NORMALIZERS[kind](record)
         row = {}
         for key in CSV_FIELDS[kind]:
+            if key not in value:
+                row[key] = ""
+                continue
             item = value[key]
-            if key in ARRAY_FIELDS:
+            if key in JSON_FIELDS:
                 row[key] = canonical(item)
+            elif key in BOOLEAN_FIELDS:
+                row[key] = "true" if item else "false"
             elif item is None:
                 row[key] = ""
             else:

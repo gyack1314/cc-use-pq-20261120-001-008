@@ -2,34 +2,46 @@ from decimal import Decimal
 
 from .contracts import (contains, decimal_text, distinct_strings, identifier, integer,
                         overlaps, period, ratio, require, shape, text)
+from .observatory.calibration import Calibrations
 from .residents import Residents
 
 
 def normalize_action(record):
     shape(record, ("id", "revision", "name", "zone", "metric", "start", "end", "status",
-                   "capacity", "groups", "priority", "facility"))
+                   "capacity", "groups", "priority", "facility"), ("calibration",))
     start, end = period(record["start"], record["end"])
     require(record["status"] in ("planned", "active", "suspended", "closed"), "status", "行动状态无效")
-    return {"id": identifier(record["id"]), "revision": integer(record["revision"], "revision", 1),
-            "name": text(record["name"], "name"), "zone": identifier(record["zone"], "zone"),
-            "metric": identifier(record["metric"], "metric"), "start": start, "end": end,
-            "status": record["status"], "capacity": integer(record["capacity"], "capacity"),
-            "groups": distinct_strings(record["groups"], "groups"),
-            "priority": integer(record["priority"], "priority", 0, 100),
-            "facility": identifier(record["facility"], "facility")}
+    result = {"id": identifier(record["id"]), "revision": integer(record["revision"], "revision", 1),
+              "name": text(record["name"], "name"), "zone": identifier(record["zone"], "zone"),
+              "metric": identifier(record["metric"], "metric"), "start": start, "end": end,
+              "status": record["status"], "capacity": integer(record["capacity"], "capacity"),
+              "groups": distinct_strings(record["groups"], "groups"),
+              "priority": integer(record["priority"], "priority", 0, 100),
+              "facility": identifier(record["facility"], "facility")}
+    if record.get("calibration"):
+        result["calibration"] = identifier(record["calibration"], "calibration")
+    return result
 
 
 class Adaptation:
-    def __init__(self, snapshot):
+    def __init__(self, snapshot, calibration_id=None):
         self.rows = snapshot["action"]
         self.snapshot = snapshot
         self.residents = Residents(snapshot)
+        self.calibrations = Calibrations(snapshot)
+        self.requested_calibration = calibration_id
 
     def validate(self):
         active = []
         for row in self.rows.values():
             require(row["zone"] in self.snapshot["zone"], "reference", "行动行政区不存在")
             require(row["metric"] in self.snapshot["metric"], "reference", "行动指标不存在")
+            if row.get("calibration"):
+                binding = self.calibrations.descriptor(row["calibration"])
+                require(binding["metric"] == row["metric"], "reference", "行动口径与指标不一致", action=row["id"])
+                require(binding["effective_start"] <= row["start"]
+                        and row["end"] <= binding["effective_end"],
+                        "calibration_scope", "行动有效期超出口径生效范围", action=row["id"])
             known = self.residents.registered_groups(row["zone"])
             require(set(row["groups"]).issubset(known), "reference", "行动人群尚未登记")
             if row["status"] != "active":
@@ -39,8 +51,10 @@ class Adaptation:
             active.append(row)
 
     def active(self, zone, metric, when):
+        target_id = self.calibrations.selected_id(self.requested_calibration, metric)
         selected = [row for row in self.rows.values() if row["zone"] == zone and row["metric"] == metric
-                    and row["status"] == "active" and contains(row, when)]
+                    and row["status"] == "active" and contains(row, when)
+                    and self.calibrations.action_binding(row) == target_id]
         return sorted(selected, key=lambda row: (-row["priority"], row["id"]))
 
     def is_treated(self, zone, metric, when):

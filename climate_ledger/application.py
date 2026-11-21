@@ -3,14 +3,20 @@ from .analysis.exposure import Exposure
 from .analysis.study import Study
 from .contracts import KINDS, identifier, integer, require, shape, text
 from .ledger import Ledger
+from .observatory.calibration import Calibrations, normalize_calibration, normalize_conversion
 from .observatory.catalog import Catalog, normalize_metric, normalize_station, normalize_zone
 from .observatory.readings import Readings, normalize_reading
 from .publication import Publication
 from .residents import Residents, normalize_population
 
 
-NORMALIZERS = {"zone": normalize_zone, "metric": normalize_metric, "station": normalize_station,
-               "population": normalize_population, "action": normalize_action, "reading": normalize_reading}
+NORMALIZERS = {"zone": normalize_zone, "metric": normalize_metric,
+               "calibration": normalize_calibration, "conversion": normalize_conversion,
+               "station": normalize_station,
+               "population": normalize_population, "action": normalize_action,
+               "reading": normalize_reading}
+
+METRIC_SEMANTIC_FIELDS = ("dimension", "unit", "threshold", "direction", "minimum", "maximum")
 
 
 class Application:
@@ -27,6 +33,7 @@ class Application:
     @staticmethod
     def validate(snapshot):
         Catalog(snapshot).validate()
+        Calibrations(snapshot).validate()
         Readings(snapshot).validate()
         Residents(snapshot).validate()
         Adaptation(snapshot).validate()
@@ -41,7 +48,25 @@ class Application:
         for item in bundle["records"]:
             shape(item, ("kind", "data"))
             require(item["kind"] in KINDS, "kind", "未知资料类型")
-            normalized.append((item["kind"], NORMALIZERS[item["kind"]](item["data"])))
+            record = NORMALIZERS[item["kind"]](item["data"])
+            if item["kind"] == "metric":
+                previous = self.ledger.snapshot()["metric"].get(record["id"])
+                if previous is not None and any(record[field] != previous[field]
+                                                 for field in METRIC_SEMANTIC_FIELDS):
+                    require(False, "metric_redefinition",
+                            "指标语义字段不能修订；测量定义变化应注册为新口径", metric=record["id"])
+            if item["kind"] == "reading":
+                key = ":".join((record["station"], record["metric"], record["day"]))
+                previous = self.ledger.snapshot()["reading"].get(key)
+                if previous is not None and previous.get("calibration") != record.get("calibration"):
+                    require(False, "calibration_rebind",
+                            "观测不能在修订中改变测量口径；新定义应使用新观测或新口径", reading=key)
+            if item["kind"] == "action":
+                previous = self.ledger.snapshot()["action"].get(record["id"])
+                if previous is not None and previous.get("calibration") != record.get("calibration"):
+                    require(False, "calibration_rebind",
+                            "行动承诺不能在修订中改变测量口径；重新确认应登记新行动", action=record["id"])
+            normalized.append((item["kind"], record))
         with self.ledger.transaction(write=True):
             return self.ledger.append(bundle, normalized, self.validate)
 
@@ -85,9 +110,9 @@ class Application:
         spec = query_spec(spec)
         with self.ledger.transaction():
             snapshot = self.ledger.snapshot()
-            readings = Readings(snapshot)
+            readings = Readings(snapshot, spec["calibration"])
             residents = Residents(snapshot)
-            adaptation = Adaptation(snapshot)
+            adaptation = Adaptation(snapshot, spec["calibration"])
             return {"watermark": self.ledger.watermark(), "zones": [
                 {"zone": zone, "observations": readings.diagnostics(zone, spec["metric"], spec["start"], spec["end"]),
                  "residents": residents.period_coverage(zone, spec["start"], spec["end"]),

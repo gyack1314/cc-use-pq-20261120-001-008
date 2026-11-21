@@ -2,16 +2,30 @@ from decimal import Decimal
 
 from ..adaptation import Adaptation
 from ..contracts import days, decimal_text, query_spec, ratio, require
+from ..observatory.calibration import Calibrations
 from ..observatory.readings import Readings
 from ..residents import Residents
 
 
 class Exposure:
-    def __init__(self, snapshot):
+    def __init__(self, snapshot, calibration_id=None, conversions=()):
         self.snapshot = snapshot
-        self.readings = Readings(snapshot)
+        self.requested_calibration = calibration_id
+        self.allowed_conversions = tuple(conversions)
+        self.readings = Readings(snapshot, calibration_id, conversions)
         self.residents = Residents(snapshot)
-        self.adaptation = Adaptation(snapshot)
+        self.adaptation = Adaptation(snapshot, calibration_id)
+        self.calibrations = Calibrations(snapshot)
+
+    def target_calibration(self, metric):
+        return self.calibrations.selected_id(self.requested_calibration, metric)
+
+    def calibration_registry(self, daily):
+        calibration_ids = {self.target_calibration(row["weather"]["metric"]) for row in daily}
+        calibration_ids.update(item["calibration"] for row in daily for item in row["weather"]["evidence"])
+        conversion_ids = {item["conversion"]["id"]
+                          for row in daily for item in row["weather"]["evidence"] if "conversion" in item}
+        return self.calibrations.registry(calibration_ids, conversion_ids)
 
     def daily(self, zone, metric, when, minimum_coverage):
         weather = self.readings.zone_day(zone, metric, when, minimum_coverage)
@@ -40,6 +54,17 @@ class Exposure:
     def analyze(self, spec):
         spec = query_spec(spec)
         self.readings.catalog.metric(spec["metric"])
+        target = self.calibrations.selected_id(spec["calibration"], spec["metric"])
+        descriptor = self.calibrations.descriptor(target)
+        require(descriptor["metric"] == spec["metric"], "calibration", "查询口径不属于该指标",
+                calibration=target, metric=spec["metric"])
+        for conversion_id in spec["conversions"]:
+            require(conversion_id in self.calibrations.conversions, "conversion",
+                    "允许的转换不存在", conversion=conversion_id)
+        self.requested_calibration = spec["calibration"]
+        self.allowed_conversions = tuple(spec["conversions"])
+        self.readings = Readings(self.snapshot, spec["calibration"], spec["conversions"])
+        self.adaptation = Adaptation(self.snapshot, spec["calibration"])
         require(set(spec["zones"]).issubset(self.snapshot["zone"]), "zone", "查询含未知行政区")
         daily = [self.daily(zone, spec["metric"], when, spec["minimum_coverage"])
                  for zone in spec["zones"] for when in days(spec["start"], spec["end"])]
@@ -47,7 +72,8 @@ class Exposure:
         qualified = all(row["complete"] for row in strata)
         all_known = self.summarize("all", daily)
         return {"query": spec, "status": "qualified" if qualified else "incomplete", "strata": strata,
-                "total": all_known, "daily": daily, "episodes": self.episodes(daily)}
+                "total": all_known, "daily": daily, "episodes": self.episodes(daily),
+                "calibration_registry": self.calibration_registry(daily)}
 
     @staticmethod
     def summarize(zone, daily):
